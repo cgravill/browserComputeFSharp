@@ -30,6 +30,7 @@ type Msg =
 | Decrement
 | MassiveCalculation
 | ExpensiveCalculationAsync
+| ForceCounterTo of int64
 | ComputedPrimeFactors of int64[]
 | UpdatedOutputs of string
 
@@ -47,24 +48,24 @@ let maxPage = 20
 
 let update (msg:Msg) (model:Model) =
 
-    let adjustCountForDramaticalReasons page =
+    (*let adjustCountForDramaticalReasons page =
         match page with
         | 0 -> 0L
         | 2 -> 12L
         | 3 -> 3349L
         | 4 -> 5029784645645674576L
-        | _ -> model.count
+        | _ -> model.count*)
 
     match msg with
     | NextPage ->
       let newPage = min maxPage (model.page + 1)
       
       Browser.Dom.history.replaceState((), "", sprintf "#%i" newPage)
-      {model with page = newPage; count = adjustCountForDramaticalReasons newPage; primeFactors = [||]; outputs = [] }
+      {model with page = newPage; primeFactors = [||]; outputs = [] }
     | PreviousPage ->
       let newPage = max 0 (model.page - 1)
       Browser.Dom.history.replaceState((), "", sprintf "#%i" newPage)
-      {model with page = newPage; count = adjustCountForDramaticalReasons newPage; primeFactors = [||]; outputs = [] }
+      {model with page = newPage; primeFactors = [||]; outputs = [] }
     | Increment -> {model with count = model.count + 1L }
     | Decrement -> {model with count = model.count - 1L }
     | MassiveCalculation ->
@@ -75,6 +76,8 @@ let update (msg:Msg) (model:Model) =
       {model with primeFactors = factors}
     | UpdatedOutputs text ->
       {model with outputs = text :: model.outputs}
+    | ForceCounterTo value ->
+      {model with count = value}
 
 type IActualModule =
   abstract isAwesome: unit -> bool
@@ -337,7 +340,11 @@ let sampleApplication (count:int64) dispatch =
         ]
     ]
 
-let pageTitle (model:Model) dispatch  =
+let pageTitle (model:Model) dispatch =
+
+  if (model.count <> 0L) then
+    dispatch (ForceCounterTo 0L)
+
   Hero.hero
     [
       Hero.IsFullHeight ]
@@ -354,11 +361,14 @@ let pageTitle (model:Model) dispatch  =
 
 
 
-let pageCounterGeneral (model:Model) dispatch  =
+let pageCounterGeneral forceCounterNumberDrama (model:Model) dispatch  =
+
+  if (model.count <> forceCounterNumberDrama) then
+    dispatch (ForceCounterTo forceCounterNumberDrama)
 
   let contents =
     [
-      sampleApplication model.count dispatch
+      sampleApplication model.count dispatch 
       br []
       Button.button
         [ Button.Props [OnClick (fun _ -> primeFactors model.count dispatch)] ]
@@ -382,9 +392,9 @@ let pageCounterGeneral (model:Model) dispatch  =
         ]
     ]
 
-let pageCounter1 = pageCounterGeneral
-let pageCounter2 = pageCounterGeneral 
-let pageCounter3 = pageCounterGeneral 
+let pageCounter1 = pageCounterGeneral 12L
+let pageCounter2 = pageCounterGeneral 3349L
+let pageCounter3 = pageCounterGeneral 5029784645645674576L
 
 let pageGeneral code dispatchFunc title text (model:Model) dispatch =
   let outputs =
