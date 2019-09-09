@@ -319,6 +319,21 @@ let page0 (model:Model) dispatch =
         ]
     ]
 
+let pagePlaceHolder text1 text2 (model:Model) dispatch =
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            [ Heading.h1 [ ]
+                [ str text1 ]
+              Heading.h2 [ Heading.IsSubtitle ]
+                [ str text2 ] ]
+        ]
+    ]
 
 let sampleApplication (count:int64) dispatch =
   div
@@ -531,17 +546,23 @@ let pageSummary (model:Model) dispatch  =
 let pages =
   [
     page0
+    pagePlaceHolder "What we do" "Some fun pictures"
     pageTitle
     pageCounter1
     pageCounter2
     pageCounter3
     pageOptimiseIt
+    pagePlaceHolder "Distraction" "the paper"
     pageExpensiveCalculation
     pageExpensiveCalculationAsync
+    pagePlaceHolder "Why's async{} slow" "good question...."
+    pagePlaceHolder "Also mailboxprocessor<T>" "good question...."
     pageWorker
     pageWasm
     pageEnergyCalculation
+    pagePlaceHolder "F# + WASM in workers" "diagram"
     pageSummary
+    pagePlaceHolder "Change of topic, let's say you've got C# too and TypeScript" "All the things"
   ]
 
 let view (model:Model) dispatch =
