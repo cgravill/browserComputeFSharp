@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Wasm example</title>
+  </head>
+  <body>
+    <script type="module">
+        import Module from './fibonacci.js'
+        Module().then(function(mymod) {
+            const fib = mymod.cwrap('fib', 'number', ['number']);
+            console.log(fib(64));
+        });
+    </script>
+  </body>
+</html>

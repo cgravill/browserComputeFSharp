@@ -1,0 +1,1 @@
+yarn run ts2fable ./node_modules/monaco-editor/monaco.d.ts ./src/Libs/Monaco.fs

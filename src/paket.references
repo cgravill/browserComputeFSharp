@@ -1,0 +1,8 @@
+FSharp.Core
+Fable.Core
+Fable.Elmish.React
+Fable.Elmish.HMR
+Fable.Elmish.Browser
+Fable.Browser.Worker
+Fable.Browser.Blob
+Fulma
