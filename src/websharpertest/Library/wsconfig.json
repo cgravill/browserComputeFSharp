@@ -1,0 +1,7 @@
+﻿{
+  "$schema": "https://websharper.com/wsconfig.schema.json",
+  "project": "bundle",
+  "outputDir": "WebSharperContent",
+  "scriptBaseUrl": "/WebSharperContent/",
+  "dce": true
+}

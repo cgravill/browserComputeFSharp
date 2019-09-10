@@ -543,6 +543,14 @@ let pageSummary (model:Model) dispatch  =
         ]
     ]
 
+//WebSharper
+let [<Global>] Library: obj = jsNative
+
+let WebSharperCalculation dispatch =
+  Library?startWorker()
+
+let pageWebSharperCalculation = pageGeneral expensiveCalculationCode WebSharperCalculation "Mixing C# & F#" "WebSharper calculation"
+
 let pages =
   [
     page0
@@ -563,6 +571,7 @@ let pages =
     pagePlaceHolder "F# + WASM in workers" "diagram"
     pageSummary
     pagePlaceHolder "Change of topic, let's say you've got C# too and TypeScript" "All the things"
+    pageWebSharperCalculation
   ]
 
 let view (model:Model) dispatch =
