@@ -513,6 +513,56 @@ let pageOptimiseIt (model:Model) dispatch =
 let pageExpensiveCalculation = pageGeneral expensiveCalculationCode expensiveCalculation "Synthetic problem" "Expensive calculation"
 let pageExpensiveCalculationAsync = pageGeneral expensiveCalculationAsyncCode expensiveCalculationAsync "Use async{}" "Expensive calculation (async)"
 let pageWorker = pageGeneral expensiveCalculationWorkerCode expensiveCalculationWorker "Concurrency (web workers)" "Expensive calculation (web worker)"
+
+let pageVariablePeformance (model:Model) dispatch =
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            [
+              Heading.h1 [ ]
+                [ str "Unstable performance JavaScript" ]
+              Image.image
+                [
+                  
+                  Image.Option.CustomClass "IsInlineBlock"
+                ]
+                [ img [ Src "images/javaScriptPerformance.png" ] ]
+            ]
+
+
+        ]
+    ]
+
+let page3percentWebassembly (model:Model) dispatch =
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            [
+              Heading.h1 [ ]
+                [ str "For the 3%" ]
+              Image.image
+                [
+                  
+                  Image.Option.CustomClass "IsInlineBlock"
+                ]
+                [ img [ Src "images/javaScriptPerformance.png" ] ]
+                //https://jsperf.com/checking-for-null-or-undefined
+            ]
+
+
+        ]
+    ]
+
 let pageWasm = pageGeneralTwoColumn doExpensiveCalculationWasmCode doExpensiveCalculationWasmCppCode doExpensiveCalculationWasm "Predictable performance (wasm)" "Expensive calculation (wasm)"
 //let pageEnergyCalculation = pageGeneral energyCalculationCode energyCaclulation "Calculating on DNA" "DNA energy caclulation"
 let pageEnergyCalculation = pageGeneralTwoColumn energyCalculationCode energyCalculationCppCode energyCaclulation "Calculating on DNA" "DNA energy caclulation"
@@ -532,8 +582,8 @@ let pageSummary (model:Model) dispatch  =
                 [ str "Questions?" ]
 
               a
-                [Href "https://github.com/cgravill/fableComputational"]
-                [str "https://github.com/cgravill/fableComputational"]
+                [Href "https://github.com/cgravill/browserComputeFSharp"]
+                [str "https://github.com/cgravill/browserComputeFSharp"]
               p
                 []
                 [str ("(will be live)")]
@@ -549,7 +599,38 @@ let [<Global>] Library: obj = jsNative
 let WebSharperCalculation dispatch =
   Library?startWorker()
 
-let pageWebSharperCalculation = pageGeneral expensiveCalculationCode WebSharperCalculation "Mixing C# & F#" "WebSharper calculation"
+let WebSharperCalculationCode = """[<WebSharper.JavaScriptExport>]
+module Library
+
+open WebSharper.JavaScript
+
+let startWorker() =
+
+    //navigator.hardwareConcurrency
+
+    //https://developers.websharper.com/docs/v4.x/fs/web-workers
+
+    let myWorker = new Worker(fun self ->
+
+        self.Onmessage <- fun event ->
+            Console.Log "This was written from the worker!"
+
+            let utility = LibraryCS.Utility()
+            utility.Multiply(3) |> Console.Log
+            ()
+
+        //self.PostMessage("This worker's job is done, it can be terminated.")
+    )
+
+    myWorker.PostMessage(3)
+
+    myWorker.Onmessage <- fun event ->
+        Console.Log event.Data
+
+        if event.Data.ToString() = "This worker's job is done, it can be terminated." then
+            myWorker.Terminate()"""
+
+let pageWebSharperCalculation = pageGeneral WebSharperCalculationCode WebSharperCalculation "Mixing C# & F#" "WebSharper calculation"
 
 let pages =
   [
@@ -566,12 +647,14 @@ let pages =
     pagePlaceHolder "Why's async{} slow" "good question...."
     pagePlaceHolder "Also mailboxprocessor<T>" "good question...."
     pageWorker
+    pageVariablePeformance
     pageWasm
     pageEnergyCalculation
     pagePlaceHolder "F# + WASM in workers" "diagram"
     pageSummary
     pagePlaceHolder "Change of topic, let's say you've got C# too and TypeScript" "All the things"
     pageWebSharperCalculation
+    pageSummary
   ]
 
 let view (model:Model) dispatch =

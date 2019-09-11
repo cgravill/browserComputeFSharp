@@ -337,3 +337,5 @@ src/wasm/*.wasm
 public/fibonacci.wasm
 public/dna.wasm
 src/websharpertest/Library/WebSharperContent/*
+public/WebSharperContent/*
+src/.ionide/symbolCache.db
