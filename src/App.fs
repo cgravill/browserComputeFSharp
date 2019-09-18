@@ -44,7 +44,7 @@ let page =
 let init() : Model =
   {count=0L; page=page; primeFactors=[||]; outputs=[]}
 
-let maxPage = 20
+let maxPage = 50
 
 let update (msg:Msg) (model:Model) =
 
@@ -313,7 +313,7 @@ let page0 (model:Model) dispatch =
         [ Container.container [ Container.IsFluid
                                 Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
             [ Heading.h1 [ ]
-                [ str "Intensive browser computation and Fable" ]
+                [ str "Browser-based intensive computation with F#" ]
               Heading.h2 [ Heading.IsSubtitle ]
                 [ str "Colin Gravill (@cgravill)" ] ]
         ]
@@ -335,6 +335,105 @@ let pagePlaceHolder text1 text2 (model:Model) dispatch =
         ]
     ]
 
+let pageImage text1 imageUrl (model:Model) dispatch =
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            [
+              Heading.h1 [ ]
+                [ str text1 ]
+              Image.image
+                [
+                  
+                  Image.Option.CustomClass "IsInlineBlock"
+                ]
+                [ img [ Src imageUrl ] ]
+            ]
+        ]
+    ]
+
+let pageApplication (model:Model) dispatch =
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            [
+              Heading.h1 [ ]
+                [ str "Immune system reprogramming" ]
+
+
+              Columns.columns 
+                [  ]
+                [
+                  Column.column
+                    [ ]
+                    [
+                      Image.image
+                        [
+                          Image.Is128x128
+                          Image.Option.CustomClass "IsInlineBlock"
+                        ]
+                        [ img [ Src "images/oxbLogo.png" ] ]
+
+                      Image.image
+                        [
+                          
+                          Image.Option.CustomClass "IsInlineBlock"
+                        ]
+                        [ img [ Src "images/bbcLivingDrug.png" ] ]
+                    ]
+                  Column.column [ Column.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Left)] ]
+                    [
+                        Heading.h2 [] [str "Kymriah"]
+                        h2 [] [str "First FDA approved CAR-T, with Novartis."]
+                        h2 [] [str "81% of terminally ill patients in remission after treatment"]
+                        str "Costs nearly $0.5M per patient with ALL"
+
+                        br []
+                        br []
+                        br []
+
+                        Heading.h2 [] [str "We are helping"]
+                        h2 [] [str  "Improve yield and quality of lentiviral vector, produced by HEK293T cells"]
+                        h2 [] [str  "Optimizing transfection and bioreactor yields"]
+                        h2 [] [str  "Facilitate future production of new therapies"]
+
+                    
+                    
+                    ]
+                ]
+
+              
+            ]
+        ]
+    ]
+
+let pageInferenceVideo (model:Model) dispatch =
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            [
+              Heading.h1 [ ]
+                [ str "Video" ]
+
+              video [ Src "images/inference.mp4"; AutoPlay true ] []
+            ]
+        ]
+    ]
 let sampleApplication (count:int64) dispatch =
   div
     []
@@ -533,8 +632,6 @@ let pageVariablePeformance (model:Model) dispatch =
                 ]
                 [ img [ Src "images/javaScriptPerformance.png" ] ]
             ]
-
-
         ]
     ]
 
@@ -635,7 +732,29 @@ let pageWebSharperCalculation = pageGeneral WebSharperCalculationCode WebSharper
 let pages =
   [
     page0
-    pagePlaceHolder "What we do" "Some fun pictures"
+
+    pageImage "Software & wetware" "images/mainWetlab.jpg"
+    pageImage "Design-build-test-learn" "images/designBuildTestLearn.png"
+    pageImage "Wetware database" "images/freezer.jpg"
+    pageImage "Wetware index (barcodes)" "images/wetlabBarcodes.jpg"
+    pageImage "Wetware compiler (liquid handler)" "images/liquidHandler.jpg"
+    pageImage "Wetware logging (microscopy)" "images/microscope.JPG"
+
+    pageImage "Optimising inputs" "images/optimalCombination.png"
+    pageImage "Twist" "images/twist.svg"
+    pageImage "Choose your mutant" "images/mutants.png"
+    pageImage "Design-build-test-learn" "images/designBuildTestLearn.png"
+    pageApplication
+
+    pageImage "Design-build-test-learn" "images/designBuildTestLearn2.png"
+
+    pagePlaceHolder "Batch vs interactive compute" "large scale on the cloud, but useful to be able to compute locally"
+    
+    pagePlaceHolder "Cards Tweet" "at: https://twitter.com/fsibot/status/506202011423895553?s=20"
+    pageImage "Running code for others" "images/cardsTweet.png"
+
+    pageInferenceVideo
+
     pageTitle
     pageCounter1
     pageCounter2

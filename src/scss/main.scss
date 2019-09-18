@@ -6,8 +6,8 @@ $fa-font-path: "~@fortawesome/fontawesome-free/webfonts/";
 
 @import '~bulma/bulma.sass';
 
-
 html, body {
+	overflow: auto;
     height: 100%;
     margin: 0;
     background-color:aliceblue;

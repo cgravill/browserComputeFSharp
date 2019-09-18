@@ -21,7 +21,6 @@ let startWorker() =
         //self.PostMessage("This worker's job is done, it can be terminated.")
     )
 
-
     myWorker.PostMessage(3)
 
     myWorker.Onmessage <- fun event ->
