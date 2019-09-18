@@ -18,6 +18,7 @@ open Elmish.HMR
 
 type Model = {
   count: int64
+  enteredPage: bool
   page: int
   primeFactors: int64[]
   outputs: List<string>
@@ -42,7 +43,7 @@ let page =
     Browser.Dom.window.location.hash.[1..] |> int
 
 let init() : Model =
-  {count=0L; page=page; primeFactors=[||]; outputs=[]}
+  {count=0L; enteredPage=false; page=page; primeFactors=[||]; outputs=[]}
 
 let maxPage = 50
 
@@ -61,13 +62,13 @@ let update (msg:Msg) (model:Model) =
       let newPage = min maxPage (model.page + 1)
       
       Browser.Dom.history.replaceState((), "", sprintf "#%i" newPage)
-      {model with page = newPage; primeFactors = [||]; outputs = [] }
+      {model with enteredPage = true; page = newPage; primeFactors = [||]; outputs = [] }
     | PreviousPage ->
       let newPage = max 0 (model.page - 1)
       Browser.Dom.history.replaceState((), "", sprintf "#%i" newPage)
-      {model with page = newPage; primeFactors = [||]; outputs = [] }
-    | Increment -> {model with count = model.count + 1L }
-    | Decrement -> {model with count = model.count - 1L }
+      {model with enteredPage = true; page = newPage; primeFactors = [||]; outputs = [] }
+    | Increment -> {model with enteredPage = false; count = model.count + 1L }
+    | Decrement -> {model with enteredPage = false; count = model.count - 1L }
     | MassiveCalculation ->
       model
     | ExpensiveCalculationAsync ->
@@ -302,6 +303,8 @@ let xEditor language model dispatch code =
 
 let fsharpEditor = xEditor "fsharp"
 let cppEditor = xEditor "cpp"
+let csharpEditor = xEditor "csharp"
+let javaScriptEditor = xEditor "javascript"
 
 let page0 (model:Model) dispatch =
   Hero.hero
@@ -336,23 +339,36 @@ let pagePlaceHolder text1 text2 (model:Model) dispatch =
     ]
 
 let pageImage text1 imageUrl (model:Model) dispatch =
+
   Hero.hero
     [
       Hero.IsFullHeight ]
     [
       Hero.body
         [ ]
-        [ Container.container [ Container.IsFluid
-                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+        [
+          Container.container
+            [
+              //Container.IsFluid
+              
+              //Container.IsFullHD
+              Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ]
+            ]
             [
               Heading.h1 [ ]
                 [ str text1 ]
               Image.image
                 [
-                  
-                  Image.Option.CustomClass "IsInlineBlock"
+                  //Image.Option.CustomClass "IsInlineBlock"
+                  Image.Is3by2
+                  //Image.Props [Style [MaxHeight "950px"]]
                 ]
-                [ img [ Src imageUrl ] ]
+                [ img
+                    [
+                      Src imageUrl
+                      //Style [MaxHeight "950px"]
+                    ]
+                ]
             ]
         ]
     ]
@@ -456,7 +472,7 @@ let sampleApplication (count:int64) dispatch =
 
 let pageTitle (model:Model) dispatch =
 
-  if (model.count <> 0L) then
+  if (model.count <> 0L && model.enteredPage) then
     dispatch (ForceCounterTo 0L)
 
   Hero.hero
@@ -468,7 +484,12 @@ let pageTitle (model:Model) dispatch =
         [ Container.container [ Container.IsFluid
                                 Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
             
-            [sampleApplication model.count dispatch]
+            [
+              Heading.h1
+                []
+                [str "let's start with something simple:"]
+              
+              sampleApplication model.count dispatch]
         
         ]
     ]
@@ -477,7 +498,7 @@ let pageTitle (model:Model) dispatch =
 
 let pageCounterGeneral forceCounterNumberDrama (model:Model) dispatch  =
 
-  if (model.count <> forceCounterNumberDrama) then
+  if (model.count <> forceCounterNumberDrama && model.enteredPage) then
     dispatch (ForceCounterTo forceCounterNumberDrama)
 
   let contents =
@@ -543,7 +564,7 @@ let pageGeneral code dispatchFunc title text (model:Model) dispatch =
         content
     ]
 
-let pageGeneralTwoColumn code code2 dispatchFunc title text (model:Model) dispatch =
+let pageGeneralTwoColumn editor1 editor2 dispatchFunc title text (model:Model) dispatch =
   let outputs =
     model.outputs
     |> List.rev
@@ -569,11 +590,11 @@ let pageGeneralTwoColumn code code2 dispatchFunc title text (model:Model) dispat
             [
               Column.column [ ]
                 [ 
-                  fsharpEditor model dispatch code
+                  editor1
                 ]
               Column.column [ ]
                 [
-                  cppEditor model dispatch code2
+                  editor2
                 ]
             ]
           
@@ -660,9 +681,24 @@ let page3percentWebassembly (model:Model) dispatch =
         ]
     ]
 
-let pageWasm = pageGeneralTwoColumn doExpensiveCalculationWasmCode doExpensiveCalculationWasmCppCode doExpensiveCalculationWasm "Predictable performance (wasm)" "Expensive calculation (wasm)"
+let pageWasm (model:Model) dispatch =
+  pageGeneralTwoColumn
+    (fsharpEditor model dispatch doExpensiveCalculationWasmCode)
+    (cppEditor model dispatch doExpensiveCalculationWasmCppCode)
+    doExpensiveCalculationWasm
+    "Predictable performance (wasm)" "Expensive calculation (wasm)"
+    model
+    dispatch
+
 //let pageEnergyCalculation = pageGeneral energyCalculationCode energyCaclulation "Calculating on DNA" "DNA energy caclulation"
-let pageEnergyCalculation = pageGeneralTwoColumn energyCalculationCode energyCalculationCppCode energyCaclulation "Calculating on DNA" "DNA energy caclulation"
+let pageEnergyCalculation (model:Model) dispatch =
+  pageGeneralTwoColumn
+    (fsharpEditor model dispatch energyCalculationCode)
+    (cppEditor model dispatch energyCalculationCppCode) 
+    energyCaclulation
+    "Calculating on DNA" "DNA energy caclulation"
+    model
+    dispatch
 
 let pageSummary (model:Model) dispatch  =
   Hero.hero
@@ -694,40 +730,471 @@ let pageSummary (model:Model) dispatch  =
 let [<Global>] Library: obj = jsNative
 
 let WebSharperCalculation dispatch =
-  Library?startWorker()
+  Library?startWorker (fun (message:string) -> dispatch (UpdatedOutputs message))
 
 let WebSharperCalculationCode = """[<WebSharper.JavaScriptExport>]
 module Library
 
 open WebSharper.JavaScript
 
-let startWorker() =
-
-    //navigator.hardwareConcurrency
-
+let startWorker (callback:string->unit) =
     //https://developers.websharper.com/docs/v4.x/fs/web-workers
-
-    let myWorker = new Worker(fun self ->
-
-        self.Onmessage <- fun event ->
-            Console.Log "This was written from the worker!"
-
-            let utility = LibraryCS.Utility()
-            utility.Multiply(3) |> Console.Log
-            ()
-
-        //self.PostMessage("This worker's job is done, it can be terminated.")
-    )
-
-    myWorker.PostMessage(3)
-
-    myWorker.Onmessage <- fun event ->
-        Console.Log event.Data
-
-        if event.Data.ToString() = "This worker's job is done, it can be terminated." then
-            myWorker.Terminate()"""
+    let procceses:int = JS.Inline("navigator.hardwareConcurrency")
+    for i in 0..(procceses*3) do
+        let worker = new Worker(fun self ->
+            self.Onmessage <- fun event ->
+                let data = event.Data :?> int
+                let utility = LibraryCS.Utility()
+                let result = utility.Process(data)
+                self.PostMessage(result)
+        )
+        worker.PostMessage(i)
+        worker.Onmessage <- fun event ->
+            callback (sprintf "Worker ID=%i Result=%O" i event.Data)
+            worker.Terminate()"""
 
 let pageWebSharperCalculation = pageGeneral WebSharperCalculationCode WebSharperCalculation "Mixing C# & F#" "WebSharper calculation"
+
+let WebSharperUtilityCode = """using WebSharper;
+
+namespace LibraryCS
+{
+	[JavaScript]
+	public class Utility
+    {
+        public int Process(int value)
+        {
+            var random = new System.Random();
+            var wait = random.Next(4);
+
+            var finish = System.DateTime.Now.AddSeconds(wait);
+            do {
+
+            } while (System.DateTime.Now < finish);
+            return value * 3;
+        }
+    }
+}"""
+
+let pageWebSharperFsCS (model:Model) dispatch =
+  pageGeneralTwoColumn
+    (fsharpEditor model dispatch WebSharperCalculationCode)
+    (csharpEditor model dispatch WebSharperUtilityCode) 
+    energyCaclulation
+    "Predictable performance (wasm)" "Expensive calculation (wasm)"
+    model
+    dispatch
+
+
+let WebSharperLibaryCode = """// $begin{copyright}
+//
+// This file is part of WebSharper
+//
+// Copyright (c) 2008-2018 IntelliFactory
+//
+// Licensed under the Apache License, Version 2.0 (the "License"); you
+// may not use this file except in compliance with the License.  You may
+// obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+// implied.  See the License for the specific language governing
+// permissions and limitations under the License.
+//
+// $end{copyright}
+
+IntelliFactory = {
+    Runtime: {
+        Ctor: function (ctor, typeFunction) {
+            ctor.prototype = typeFunction.prototype;
+            return ctor;
+        },
+
+        Class: function (members, base, statics) {
+            var proto = members;
+            if (base) {
+                proto = new base();
+                for (var m in members) { proto[m] = members[m] }
+            }
+            var typeFunction = function (copyFrom) {
+                if (copyFrom) {
+                    for (var f in copyFrom) { this[f] = copyFrom[f] }
+                }
+            }
+            typeFunction.prototype = proto;
+            if (statics) {
+                for (var f in statics) { typeFunction[f] = statics[f] }
+            }
+            return typeFunction;
+        },
+
+        Clone: function (obj) {
+            var res = {};
+            for (var p in obj) { res[p] = obj[p] }
+            return res;
+        },
+
+        NewObject:
+            function (kv) {
+                var o = {};
+                for (var i = 0; i < kv.length; i++) {
+                    o[kv[i][0]] = kv[i][1];
+                }
+                return o;
+            },
+
+        DeleteEmptyFields:
+            function (obj, fields) {
+                for (var i = 0; i < fields.length; i++) {
+                    var f = fields[i];
+                    if (obj[f] === void (0)) { delete obj[f]; }
+                }
+                return obj;
+            },
+
+        GetOptional:
+            function (value) {
+                return (value === void (0)) ? null : { $: 1, $0: value };
+            },
+
+        SetOptional:
+            function (obj, field, value) {
+                if (value) {
+                    obj[field] = value.$0;
+                } else {
+                    delete obj[field];
+                }
+            },
+
+        SetOrDelete:
+            function (obj, field, value) {
+                if (value === void (0)) {
+                    delete obj[field];
+                } else {
+                    obj[field] = value;
+                }
+            },
+
+        Apply: function (f, obj, args) {
+            return f.apply(obj, args);
+        },
+
+        Bind: function (f, obj) {
+            return function () { return f.apply(this, arguments) };
+        },
+
+        CreateFuncWithArgs: function (f) {
+            return function () { return f(Array.prototype.slice.call(arguments)) };
+        },
+
+        CreateFuncWithOnlyThis: function (f) {
+            return function () { return f(this) };
+        },
+
+        CreateFuncWithThis: function (f) {
+            return function () { return f(this).apply(null, arguments) };
+        },
+
+        CreateFuncWithThisArgs: function (f) {
+            return function () { return f(this)(Array.prototype.slice.call(arguments)) };
+        },
+
+        CreateFuncWithRest: function (length, f) {
+            return function () { return f(Array.prototype.slice.call(arguments, 0, length).concat([Array.prototype.slice.call(arguments, length)])) };
+        },
+
+        CreateFuncWithArgsRest: function (length, f) {
+            return function () { return f([Array.prototype.slice.call(arguments, 0, length), Array.prototype.slice.call(arguments, length)]) };
+        },
+
+        BindDelegate: function (func, obj) {
+            var res = func.bind(obj);
+            res.$Func = func;
+            res.$Target = obj;
+            return res;
+        },
+
+        CreateDelegate: function (invokes) {
+            if (invokes.length == 0) return null;
+            if (invokes.length == 1) return invokes[0];
+            var del = function () {
+                var res;
+                for (var i = 0; i < invokes.length; i++) {
+                    res = invokes[i].apply(null, arguments);
+                }
+                return res;
+            };
+            del.$Invokes = invokes;
+            return del;
+        },
+
+        CombineDelegates: function (dels) {
+            var invokes = [];
+            for (var i = 0; i < dels.length; i++) {
+                var del = dels[i];
+                if (del) {
+                    if ("$Invokes" in del)
+                        invokes = invokes.concat(del.$Invokes);
+                    else
+                        invokes.push(del);
+                }
+            }
+            return IntelliFactory.Runtime.CreateDelegate(invokes);
+        },
+
+        DelegateEqual: function (d1, d2) {
+            if (d1 === d2) return true;
+            if (d1 == null || d2 == null) return false;
+            var i1 = d1.$Invokes || [d1];
+            var i2 = d2.$Invokes || [d2];
+            if (i1.length != i2.length) return false;
+            for (var i = 0; i < i1.length; i++) {
+                var e1 = i1[i];
+                var e2 = i2[i];
+                if (!(e1 === e2 || ("$Func" in e1 && "$Func" in e2 && e1.$Func === e2.$Func && e1.$Target == e2.$Target)))
+                    return false;
+            }
+            return true;
+        },
+
+        ThisFunc: function (d) {
+            return function () {
+                var args = Array.prototype.slice.call(arguments);
+                args.unshift(this);
+                return d.apply(null, args);
+            };
+        },
+
+        ThisFuncOut: function (f) {
+            return function () {
+                var args = Array.prototype.slice.call(arguments);
+                return f.apply(args.shift(), args);
+            };
+        },
+
+        ParamsFunc: function (length, d) {
+            return function () {
+                var args = Array.prototype.slice.call(arguments);
+                return d.apply(null, args.slice(0, length).concat([args.slice(length)]));
+            };
+        },
+
+        ParamsFuncOut: function (length, f) {
+            return function () {
+                var args = Array.prototype.slice.call(arguments);
+                return f.apply(null, args.slice(0, length).concat(args[length]));
+            };
+        },
+
+        ThisParamsFunc: function (length, d) {
+            return function () {
+                var args = Array.prototype.slice.call(arguments);
+                args.unshift(this);
+                return d.apply(null, args.slice(0, length + 1).concat([args.slice(length + 1)]));
+            };
+        },
+
+        ThisParamsFuncOut: function (length, f) {
+            return function () {
+                var args = Array.prototype.slice.call(arguments);
+                return f.apply(args.shift(), args.slice(0, length).concat(args[length]));
+            };
+        },
+
+        Curried: function (f, n, args) {
+            args = args || [];
+            return function (a) {
+                var allArgs = args.concat([a === void (0) ? null : a]);
+                if (n == 1)
+                    return f.apply(null, allArgs);
+                if (n == 2)
+                    return function (a) { return f.apply(null, allArgs.concat([a === void (0) ? null : a])); }
+                return IntelliFactory.Runtime.Curried(f, n - 1, allArgs);
+            }
+        },
+
+        Curried2: function (f) {
+            return function (a) { return function (b) { return f(a, b); } }
+        },
+
+        Curried3: function (f) {
+            return function (a) { return function (b) { return function (c) { return f(a, b, c); } } }
+        },
+
+        UnionByType: function (types, value, optional) {
+            var vt = typeof value;
+            for (var i = 0; i < types.length; i++) {
+                var t = types[i];
+                if (typeof t == "number") {
+                    if (Array.isArray(value) && (t == 0 || value.length == t)) {
+                        return { $: i, $0: value };
+                    }
+                } else {
+                    if (t == vt) {
+                        return { $: i, $0: value };
+                    }
+                }
+            }
+            if (!optional) {
+                throw new Error("Type not expected for creating Choice value.");
+            }
+        },
+
+        ScriptBasePath: "./",
+
+        ScriptPath: function (a, f) {
+            return this.ScriptBasePath + (this.ScriptSkipAssemblyDir ? "" : a + "/") + f;
+        },
+
+        OnLoad:
+            function (f) {
+                if (!("load" in this)) {
+                    this.load = [];
+                }
+                this.load.push(f);
+            },
+
+        Start:
+            function () {
+                function run(c) {
+                    for (var i = 0; i < c.length; i++) {
+                        c[i]();
+                    }
+                }
+                if ("load" in this) {
+                    run(this.load);
+                    this.load = [];
+                }
+            },
+    }
+}
+
+IntelliFactory.Runtime.OnLoad(function () {
+    if (self.WebSharper && WebSharper.Activator && WebSharper.Activator.Activate)
+        WebSharper.Activator.Activate()
+});
+
+// Polyfill
+
+if (!Date.now) {
+    Date.now = function () {
+        return new Date().getTime();
+    };
+}
+
+if (!Math.trunc) {
+    Math.trunc = function (x) {
+        return x < 0 ? Math.ceil(x) : Math.floor(x);
+    }
+}
+
+if (!Object.setPrototypeOf) {
+  Object.setPrototypeOf = function (obj, proto) {
+    obj.__proto__ = proto;
+    return obj;
+  }
+}
+
+function ignore() { };
+function id(x) { return x };
+function fst(x) { return x[0] };
+function snd(x) { return x[1] };
+function trd(x) { return x[2] };
+
+if (!console) {
+    console = {
+        count: ignore,
+        dir: ignore,
+        error: ignore,
+        group: ignore,
+        groupEnd: ignore,
+        info: ignore,
+        log: ignore,
+        profile: ignore,
+        profileEnd: ignore,
+        time: ignore,
+        timeEnd: ignore,
+        trace: ignore,
+        warn: ignore
+    }
+}
+;
+(function()
+{
+ "use strict";
+ var Global,EventTarget,WindowOrWorkerGlobalScope,WorkerGlobalScope,WebSharper,Obj,LibraryCS,Utility,Event,Random,Operators,IntelliFactory,Runtime,Date,Math;
+ Global=self;
+ EventTarget=Global.EventTarget;
+ WindowOrWorkerGlobalScope=Global.WindowOrWorkerGlobalScope;
+ WorkerGlobalScope=Global.WorkerGlobalScope;
+ WebSharper=Global.WebSharper=Global.WebSharper||{};
+ Obj=WebSharper.Obj=WebSharper.Obj||{};
+ LibraryCS=Global.LibraryCS=Global.LibraryCS||{};
+ Utility=LibraryCS.Utility=LibraryCS.Utility||{};
+ Event=Global.Event;
+ Random=WebSharper.Random=WebSharper.Random||{};
+ Operators=WebSharper.Operators=WebSharper.Operators||{};
+ IntelliFactory=Global.IntelliFactory;
+ Runtime=IntelliFactory&&IntelliFactory.Runtime;
+ Date=Global.Date;
+ Math=Global.Math;
+ Obj=WebSharper.Obj=Runtime.Class({},null,Obj);
+ Obj.New=Runtime.Ctor(function()
+ {
+ },Obj);
+ Utility=LibraryCS.Utility=Runtime.Class({
+  Process:function(value)
+  {
+   var random,wait,finish;
+   random=new Random.New();
+   wait=random.Next$1(4);
+   finish=Date.now()+wait*1000;
+   do;while(Date.now()<finish);
+   return value*3;
+  }
+ },Obj,Utility);
+ Utility.New=Runtime.Ctor(function()
+ {
+ },Utility);
+ Random=WebSharper.Random=Runtime.Class({
+  Next$1:function(maxValue)
+  {
+   return maxValue<0?Operators.FailWith("'maxValue' must be greater than zero."):Math.floor(Math.random()*maxValue);
+  }
+ },Obj,Random);
+ Random.New=Runtime.Ctor(function()
+ {
+  Obj.New.call(this);
+ },Random);
+ Operators.FailWith=function(msg)
+ {
+  throw new Global.Error(msg);
+ };
+ Global.onmessage=function(event)
+ {
+  var data;
+  data=event.data;
+  return Global.postMessage((new Utility.New()).Process(data));
+ };
+}());
+
+
+if (typeof IntelliFactory !=='undefined') {
+  IntelliFactory.Runtime.ScriptSkipAssemblyDir = true;
+  IntelliFactory.Runtime.Start();
+}"""
+
+let pageWebSharperCsJs (model:Model) dispatch =
+  pageGeneralTwoColumn
+    (fsharpEditor model dispatch WebSharperUtilityCode)
+    (javaScriptEditor model dispatch WebSharperLibaryCode)
+    WebSharperCalculation
+    "Predictable performance (wasm)" "Expensive calculation (wasm)"
+    model
+    dispatch
 
 let pages =
   [
@@ -750,8 +1217,7 @@ let pages =
 
     pagePlaceHolder "Batch vs interactive compute" "large scale on the cloud, but useful to be able to compute locally"
     
-    pagePlaceHolder "Cards Tweet" "at: https://twitter.com/fsibot/status/506202011423895553?s=20"
-    pageImage "Running code for others" "images/cardsTweet.png"
+    pageImage "Running code for others" "images/cardsTweet.png" //https://twitter.com/fsibot/status/506202011423895553?s=20
 
     pageInferenceVideo
 
@@ -773,6 +1239,8 @@ let pages =
     pageSummary
     pagePlaceHolder "Change of topic, let's say you've got C# too and TypeScript" "All the things"
     pageWebSharperCalculation
+    pageWebSharperFsCS
+    pageWebSharperCsJs
     pageSummary
   ]
 

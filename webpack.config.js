@@ -98,6 +98,7 @@ module.exports = {
                 "css",
                 "cpp",
                 "javascript",
+                "csharp",
                 // We need typescript too, see https://github.com/Microsoft/monaco-editor-webpack-plugin/issues/27
                 "typescript"
             ],

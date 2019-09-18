@@ -3,28 +3,18 @@ module Library
 
 open WebSharper.JavaScript
 
-let startWorker() =
-
-    //navigator.hardwareConcurrency
-
+let startWorker (callback:string->unit) =
     //https://developers.websharper.com/docs/v4.x/fs/web-workers
-
-    let myWorker = new Worker(fun self ->
-
-        self.Onmessage <- fun event ->
-            Console.Log "This was written from the worker!"
-
-            let utility = LibraryCS.Utility()
-            utility.Multiply(3) |> Console.Log
-            ()
-
-        //self.PostMessage("This worker's job is done, it can be terminated.")
-    )
-
-    myWorker.PostMessage(3)
-
-    myWorker.Onmessage <- fun event ->
-        Console.Log event.Data
-
-        if event.Data.ToString() = "This worker's job is done, it can be terminated." then
-            myWorker.Terminate()
+    let procceses:int = JS.Inline("navigator.hardwareConcurrency")
+    for i in 0..(procceses*3) do
+        let worker = new Worker(fun self ->
+            self.Onmessage <- fun event ->
+                let data = event.Data :?> int
+                let utility = LibraryCS.Utility()
+                let result = utility.Process(data)
+                self.PostMessage(result)
+        )
+        worker.PostMessage(i)
+        worker.Onmessage <- fun event ->
+            callback (sprintf "Worker ID=%i Result=%O" i event.Data)
+            worker.Terminate()
