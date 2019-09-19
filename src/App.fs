@@ -305,6 +305,7 @@ let fsharpEditor = xEditor "fsharp"
 let cppEditor = xEditor "cpp"
 let csharpEditor = xEditor "csharp"
 let javaScriptEditor = xEditor "javascript"
+let typeScriptEditor = xEditor "typescript"
 
 let page0 (model:Model) dispatch =
   Hero.hero
@@ -700,7 +701,7 @@ let pageEnergyCalculation (model:Model) dispatch =
     model
     dispatch
 
-let pageSummary (model:Model) dispatch  =
+let pageSummary1 (model:Model) dispatch  =
   Hero.hero
     [
       Hero.IsFullHeight ]
@@ -712,19 +713,27 @@ let pageSummary (model:Model) dispatch  =
             [
               Heading.h1
                 []
-                [ str "Questions?" ]
+                [ str "Summary" ]
 
-              a
-                [Href "https://github.com/cgravill/browserComputeFSharp"]
-                [str "https://github.com/cgravill/browserComputeFSharp"]
-              p
+              Heading.h2
                 []
-                [str ("(will be live)")]
+                [ str "Same F# code as backend - F# -> JavaScript" ]
+
+              Heading.h2
+                []
+                [ str "Use multiple cores - web workers" ]
+
+              Heading.h2
+                []
+                [ str "Stable performance - Webassembly" ]
+
             ]
 
             
         ]
     ]
+
+
 
 //WebSharper
 let [<Global>] Library: obj = jsNative
@@ -781,7 +790,7 @@ let pageWebSharperFsCS (model:Model) dispatch =
     (fsharpEditor model dispatch WebSharperCalculationCode)
     (csharpEditor model dispatch WebSharperUtilityCode) 
     energyCaclulation
-    "Predictable performance (wasm)" "Expensive calculation (wasm)"
+    "F# calling C#" ""
     model
     dispatch
 
@@ -1192,9 +1201,253 @@ let pageWebSharperCsJs (model:Model) dispatch =
     (fsharpEditor model dispatch WebSharperUtilityCode)
     (javaScriptEditor model dispatch WebSharperLibaryCode)
     WebSharperCalculation
-    "Predictable performance (wasm)" "Expensive calculation (wasm)"
+    "C# and generated JavaScript" ""
     model
     dispatch
+
+let pageTypeScriptFSharp (model:Model) dispatch =
+  let content =
+    [ 
+      Columns.columns [ ]
+        [ Column.column
+            [ ]
+            [ 
+              Heading.h3 [] [str "User interface"]
+            ]
+          Column.column
+            [ ]
+            [ 
+              Heading.h3 [] [str ""]
+            ]
+          Column.column
+            [ ]
+            [ 
+              Heading.h3 [] [str "In worker (or on server)"]
+            ]
+        ]
+
+      Columns.columns [ ]
+        [ Column.column
+            [ ]
+            [ 
+              Heading.h1 [] [str "TypeScript/CSS"]
+            ]
+          Column.column
+            [ ]
+            [ 
+              Heading.h1 [] [str "?"]
+            ]
+          Column.column
+            [ ]
+            [ 
+              Heading.h1 [] [str "F#"]
+            ]
+        ]
+
+    ]
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            content
+        ]
+    ]
+
+let pageTypeScriptFSharp2 (model:Model) dispatch =
+  let content =
+    [ 
+      Columns.columns [ ]
+        [ Column.column
+            [ ]
+            [ 
+              Heading.h3 [] [str "User interface"]
+            ]
+          Column.column
+            [ ]
+            [ 
+              Heading.h3 [] [str ""]
+            ]
+          Column.column
+            [ ]
+            [ 
+              Heading.h3 [] [str "In worker (or on server)"]
+            ]
+        ]
+
+      Columns.columns [ ]
+        [ Column.column
+            [ ]
+            [ 
+              Heading.h1 [] [str "TypeScript/CSS"]
+            ]
+          Column.column
+            [ ]
+            [ 
+              Heading.h1 [] [str "F# Compiler Services"]
+            ]
+          Column.column
+            [ ]
+            [ 
+              Heading.h1 [] [str "F#"]
+            ]
+        ]
+
+    ]
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            content
+        ]
+    ]
+
+let CRNEngineSettingsFs = """(* small parts of our codebase*)
+[<JavaScript>]
+type Simulator = 
+  | Oslo
+  | Sundials
+  | SSA
+  | CME
+  | CMESundials
+  | LNA
+  | PDE
+  | MC
+
+[<JavaScript>]
+[<DebuggerDisplay("")>] // displays CRNs as strings in VS debugger
+type Crn_settings<'e> when 'e:equality = 
+  {
+    simulation      : Simulation_settings<'e>
+    simulations     : Simulation_settings<'e> list
+    stochastic      : Stochastic_settings
+    deterministic   : Deterministic_settings
+    spatial         : Spatial_settings<'e>
+    inference       : Inference_settings
+    moment_closure  : Moment_closure_settings.t<Moment_closure_settings.monomial>
+    data            : Dataset list
+    units           : Units
+    simulator       : Simulator
+    parameters      : Parameter list
+    sweeps          : Sweep list
+    rates           : Map<string, 'e>
+    plot            : Plot_settings
+  }
+  static member defaults = {
+    simulation    = Simulation_settings.defaults
+    simulations   = []
+    stochastic    = Stochastic_settings.defaults
+    deterministic = Deterministic_settings.defaults
+    spatial       = Spatial_settings.defaults
+    inference     = Inference_settings.defaults
+    moment_closure= Moment_closure_settings.defaults
+    data          = []
+    units         = Units.defaults
+    simulator     = Simulator.defaults
+    parameters    = []
+    sweeps        = []
+    rates         = Map.empty
+    plot          = Plot_settings.defaults
+  }"""
+
+
+let EngineSettingsTs = """export type Simulator = "Oslo" | "Sundials" | "SSA" | "CME" | "CMESundials" | "LNA" | "PDE" | "MC"
+
+export interface Crn_settings<e> {
+  simulation: Microsoft.Research.CRNEngine.Simulation_settings<e>;
+  simulations: Array<Microsoft.Research.CRNEngine.Simulation_settings<e>>;
+  stochastic: Microsoft.Research.CRNEngine.Stochastic_settings;
+  deterministic: Microsoft.Research.CRNEngine.Deterministic_settings;
+  spatial: Microsoft.Research.CRNEngine.Spatial_settings<e>;
+  inference: Microsoft.Research.CRNEngine.Inference_settings;
+  moment_closure: Microsoft.Research.CRNEngine.Moment_closure_settings.t<Microsoft.Research.CRNEngine.Expression.t<Array<Opaque.FSharpTuple>>>;
+  data: Array<Microsoft.Research.CRNEngine.Dataset>;
+  units: Microsoft.Research.CRNEngine.Units;
+  simulator: Microsoft.Research.CRNEngine.Simulator;
+  parameters: Array<Microsoft.Research.CRNEngine.Parameter>;
+  sweeps: Array<Microsoft.Research.CRNEngine.Sweep>;
+  rates: { [key: string]: e };
+  plot: Microsoft.Research.CRNEngine.Plot_settings;
+}
+"""
+
+let pageWebSharperEngineFsTs (model:Model) dispatch =
+  pageGeneralTwoColumn
+    (fsharpEditor model dispatch CRNEngineSettingsFs)
+    (typeScriptEditor model dispatch EngineSettingsTs)
+    WebSharperCalculation
+    "F# and generated TypeScript" ""
+    model
+    dispatch
+
+let pageSummaryFsharpTypeScriptDefinitions (model:Model) dispatch  =
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            [
+              Heading.h1
+                []
+                [ str "Summary" ]
+
+              Heading.h2
+                []
+                [ str "Write your processing in F# and user inferface in TypeScript" ]
+
+              Heading.h2
+                []
+                [ str "Run locally, preferably on a worker" ]
+
+              Heading.h2
+                []
+                [ str "Run remotely with a web socket (or whatever)" ]
+
+              Heading.h2
+                []
+                [ str "Compiler assistance briding the gap" ]
+
+            ]
+
+            
+        ]
+    ]
+
+let pageSummary (model:Model) dispatch  =
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [ Container.container [ Container.IsFluid
+                                Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
+            [
+              Heading.h1
+                []
+                [ str "Questions?" ]
+
+              a
+                [Href "https://github.com/cgravill/browserComputeFSharp"]
+                [str "https://github.com/cgravill/browserComputeFSharp"]
+              p
+                []
+                [str ("(will be live)")]
+            ]
+
+            
+        ]
+    ]
 
 let pages =
   [
@@ -1236,11 +1489,17 @@ let pages =
     pageWasm
     pageEnergyCalculation
     pagePlaceHolder "F# + WASM in workers" "diagram"
-    pageSummary
+    pageSummary1
+
     pagePlaceHolder "Change of topic, let's say you've got C# too and TypeScript" "All the things"
     pageWebSharperCalculation
     pageWebSharperFsCS
     pageWebSharperCsJs
+    pagePlaceHolder "Designers might not like F#" "can we bridge it?"
+    pageTypeScriptFSharp
+    pageTypeScriptFSharp2
+    pageWebSharperEngineFsTs
+    pageSummaryFsharpTypeScriptDefinitions
     pageSummary
   ]
 
