@@ -1479,7 +1479,7 @@ let pages =
     pageCounter2
     pageCounter3
     pageOptimiseIt
-    pagePlaceHolder "Distraction" "the paper"
+    pageImage "Distraction" "images/paper.png" //https://specfun.inria.fr/bostan//publications/BoGaSc07.pdf
     pageExpensiveCalculation
     pageExpensiveCalculationAsync
     pagePlaceHolder "Why's async{} slow" "good question...."
