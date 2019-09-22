@@ -635,6 +635,58 @@ let pageExpensiveCalculation = pageGeneral expensiveCalculationCode expensiveCal
 let pageExpensiveCalculationAsync = pageGeneral expensiveCalculationAsyncCode expensiveCalculationAsync "Use async{}" "Expensive calculation (async)"
 let pageWorker = pageGeneral expensiveCalculationWorkerCode expensiveCalculationWorker "Concurrency (web workers)" "Expensive calculation (web worker)"
 
+let asyncCodeAsJavaScript = """function expensiveCalculationAsync(dispatch$$2) {
+  Object(_fable_fable_library_2_3_12_Async_js__WEBPACK_IMPORTED_MODULE_9__["startImmediate"])(_fable_fable_library_2_3_12_AsyncBuilder_js__WEBPACK_IMPORTED_MODULE_8__["singleton"].Delay(function () {
+    return _fable_fable_library_2_3_12_AsyncBuilder_js__WEBPACK_IMPORTED_MODULE_8__["singleton"].Combine(_fable_fable_library_2_3_12_AsyncBuilder_js__WEBPACK_IMPORTED_MODULE_8__["singleton"].For(Object(_fable_fable_library_2_3_12_Seq_js__WEBPACK_IMPORTED_MODULE_7__["rangeLong"])(Object(_fable_fable_library_2_3_12_Long_js__WEBPACK_IMPORTED_MODULE_3__["fromBits"])(0, 0, false), Object(_fable_fable_library_2_3_12_Long_js__WEBPACK_IMPORTED_MODULE_3__["fromInt"])(1), Object(_fable_fable_library_2_3_12_Long_js__WEBPACK_IMPORTED_MODULE_3__["fromBits"])(20000000, 0, false), false), function (_arg1) {
+      const i$$1 = _arg1;
+
+      if (Object(_fable_fable_library_2_3_12_Long_js__WEBPACK_IMPORTED_MODULE_3__["equals"])(Object(_fable_fable_library_2_3_12_Long_js__WEBPACK_IMPORTED_MODULE_3__["op_Modulus"])(i$$1, Object(_fable_fable_library_2_3_12_Long_js__WEBPACK_IMPORTED_MODULE_3__["fromBits"])(20000, 0, false)), Object(_fable_fable_library_2_3_12_Long_js__WEBPACK_IMPORTED_MODULE_3__["fromBits"])(0, 0, false))) {
+        dispatch$$2(new Msg(8, "UpdatedOutputs", Object(_fable_fable_library_2_3_12_Long_js__WEBPACK_IMPORTED_MODULE_3__["toString"])(i$$1)));
+        return _fable_fable_library_2_3_12_AsyncBuilder_js__WEBPACK_IMPORTED_MODULE_8__["singleton"].Zero();
+      } else {
+        return _fable_fable_library_2_3_12_AsyncBuilder_js__WEBPACK_IMPORTED_MODULE_8__["singleton"].Zero();
+      }
+    }), _fable_fable_library_2_3_12_AsyncBuilder_js__WEBPACK_IMPORTED_MODULE_8__["singleton"].Delay(function () {
+      dispatch$$2(new Msg(5, "ExpensiveCalculationAsync"));
+      return _fable_fable_library_2_3_12_AsyncBuilder_js__WEBPACK_IMPORTED_MODULE_8__["singleton"].Zero();
+    }));
+  }));
+}"""
+
+let pageAsyncPerformance (model:Model) dispatch =
+  pageGeneralTwoColumn
+    (fsharpEditor model dispatch expensiveCalculationAsyncCode)
+    (javaScriptEditor model dispatch asyncCodeAsJavaScript) 
+    expensiveCalculationAsync
+    "async {} implementation" ""
+    model
+    dispatch
+
+let asyncTrampolineCode = """export class Trampoline {
+    static get maxTrampolineCallCount() {
+        return 2000;
+    }
+    constructor() {
+        this.callCount = 0;
+    }
+    incrementAndCheck() {
+        return this.callCount++ > Trampoline.maxTrampolineCallCount;
+    }
+    hijack(f) {
+        this.callCount = 0;
+        setTimeout(f, 0);
+    }
+}"""
+
+let pageAsyncPerformance2 (model:Model) dispatch =
+  pageGeneralTwoColumn
+    (fsharpEditor model dispatch expensiveCalculationAsyncCode)
+    (javaScriptEditor model dispatch asyncTrampolineCode) 
+    expensiveCalculationAsync
+    "async {} trampolines" ""
+    model
+    dispatch
+
 let pageVariablePeformance (model:Model) dispatch =
   Hero.hero
     [
@@ -1483,7 +1535,10 @@ let pages =
     pageExpensiveCalculation
     pageExpensiveCalculationAsync
     pagePlaceHolder "Why's async{} slow" "good question...."
-    pagePlaceHolder "Also mailboxprocessor<T>" "good question...."
+    pageAsyncPerformance
+    pageImage "Look in implementation" "images/fableLibrary.png"
+    pageAsyncPerformance2
+    pagePlaceHolder "Also mailboxprocessor<T>" "(great for compatiblity but also emulated)"
     pageWorker
     pageVariablePeformance
     pageWasm
