@@ -319,7 +319,7 @@ let page0 (model:Model) dispatch =
             [ Heading.h1 [ ]
                 [ str "Browser-based intensive computation with F#" ]
               Heading.h2 [ Heading.IsSubtitle ]
-                [ str "Colin Gravill (@cgravill)" ] ]
+                [ str "Colin Gravill (@cgravill) - Microsoft Research" ] ]
         ]
     ]
 
@@ -358,6 +358,39 @@ let pageImage text1 imageUrl (model:Model) dispatch =
             [
               Heading.h1 [ ]
                 [ str text1 ]
+              Image.image
+                [
+                  //Image.Option.CustomClass "IsInlineBlock"
+                  Image.Is3by2
+                  //Image.Props [Style [MaxHeight "950px"]]
+                ]
+                [ img
+                    [
+                      Src imageUrl
+                      //Style [MaxHeight "950px"]
+                    ]
+                ]
+            ]
+        ]
+    ]
+
+let pageImageRaw imageUrl (model:Model) dispatch =
+
+  Hero.hero
+    [
+      Hero.IsFullHeight ]
+    [
+      Hero.body
+        [ ]
+        [
+          Container.container
+            [
+              //Container.IsFluid
+              
+              //Container.IsFullHD
+              Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ]
+            ]
+            [
               Image.image
                 [
                   //Image.Option.CustomClass "IsInlineBlock"
@@ -445,7 +478,7 @@ let pageInferenceVideo (model:Model) dispatch =
                                 Container.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ]
             [
               Heading.h1 [ ]
-                [ str "Video" ]
+                [ str "Understanding and modelling biological decisions" ]
 
               video [ Src "images/inference.mp4"; AutoPlay true ] []
             ]
@@ -814,7 +847,7 @@ let startWorker (callback:string->unit) =
             callback (sprintf "Worker ID=%i Result=%O" i event.Data)
             worker.Terminate()"""
 
-let pageWebSharperCalculation = pageGeneral WebSharperCalculationCode WebSharperCalculation "Mixing C# & F#" "WebSharper calculation"
+let pageWebSharperCalculation = pageGeneral WebSharperCalculationCode WebSharperCalculation "Mixing C# & F# (WebSharper)" "WebSharper calculation"
 
 let WebSharperUtilityCode = """using WebSharper;
 
@@ -1491,10 +1524,11 @@ let pageSummary (model:Model) dispatch  =
 
               a
                 [Href "https://github.com/cgravill/browserComputeFSharp"]
-                [str "https://github.com/cgravill/browserComputeFSharp"]
-              p
-                []
-                [str ("(will be live)")]
+                [
+                  str "https://github.com/cgravill/browserComputeFSharp"
+                  br []
+                  str "https://aka.ms/AA64fr5"
+                ]
             ]
 
             
@@ -1505,7 +1539,9 @@ let pages =
   [
     page0
 
-    pageImage "Software & wetware" "images/mainWetlab.jpg"
+    pageInferenceVideo
+
+    pageImage "Software & wetware" "images/mainWetlab2.jpg"
     pageImage "Design-build-test-learn" "images/designBuildTestLearn.png"
     pageImage "Wetware database" "images/freezer.jpg"
     pageImage "Wetware index (barcodes)" "images/wetlabBarcodes.jpg"
@@ -1524,7 +1560,7 @@ let pages =
     
     pageImage "Running code for others" "images/cardsTweet.png" //https://twitter.com/fsibot/status/506202011423895553?s=20
 
-    pageInferenceVideo
+    
 
     pageTitle
     pageCounter1
@@ -1541,18 +1577,22 @@ let pages =
     pagePlaceHolder "Also mailboxprocessor<T>" "(great for compatiblity but also emulated)"
     pageWorker
     pageVariablePeformance
+    pageImageRaw "images/web-assembly-logo.svg"
     pageWasm
+    pageImageRaw "images/emcc.png"
     pageEnergyCalculation
-    pagePlaceHolder "F# + WASM in workers" "diagram"
+    pagePlaceHolder "F# + WASM in workers" "coordinate in F#, crunch numbers in existing native libraries"
+    pagePlaceHolder "Can we run F# in WASM as well?" "yes, and there's a talk tomorrow on Bolero!"
     pageSummary1
 
-    pagePlaceHolder "Change of topic, let's say you've got C# too and TypeScript" "All the things"
+    pagePlaceHolder "Change of topic, and technology" "Let's say you've got C# too and TypeScript... all the things"
     pageWebSharperCalculation
     pageWebSharperFsCS
     pageWebSharperCsJs
     pagePlaceHolder "Designers might not like F#" "can we bridge it?"
     pageTypeScriptFSharp
     pageTypeScriptFSharp2
+    pagePlaceHolder "Little project" "https://github.com/cgravill/TypesTSFS"
     pageWebSharperEngineFsTs
     pageSummaryFsharpTypeScriptDefinitions
     pageSummary
