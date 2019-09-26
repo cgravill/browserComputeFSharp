@@ -1539,8 +1539,15 @@ let pages =
   [
     page0
 
+    pageImage "Client side processing in browser" "images/excel.png"
+
+
+    pageImage "Tomas - http://tomasp.net/blog/2018/write-your-own-excel/" "images/fableExcel.PNG"
+    
+
     pageInferenceVideo
 
+    
     pageImage "Software & wetware" "images/mainWetlab2.jpg"
     pageImage "Design-build-test-learn" "images/designBuildTestLearn.png"
     pageImage "Wetware database" "images/freezer.jpg"
